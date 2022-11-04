@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WifiOrComunicationPage extends StatelessWidget {
   const WifiOrComunicationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const platformBle = MethodChannel('tholz.com.br/bluetooth');
     Map? name = ModalRoute.of(context)?.settings.arguments as Map?;
     String name1 = name?['name'] ?? "Não encontrado";
     return Scaffold(
@@ -21,7 +23,8 @@ class WifiOrComunicationPage extends StatelessWidget {
                 child: const Text('Comunicação')),
             const SizedBox(height: 60),
             ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  await platformBle.invokeMethod('scanWifi');
                   Navigator.of(context)
                       .pushNamed("/WIFI", arguments: {"name": name1});
                 },

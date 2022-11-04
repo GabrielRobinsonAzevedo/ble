@@ -15,10 +15,11 @@ class PaginaProvision extends StatefulWidget {
 
 class _PaginaProvisionState extends State<PaginaProvision> {
   static const permissionPlatform = MethodChannel('tholz.com.br/permissions');
-  static const platformBle = MethodChannel('com.ble/test3');
+  static const platformBle = MethodChannel('tholz.com.br/bluetooth');
   static const bluetoothEventChannel =
       EventChannel('tholz.com.br/scanDeviceStream');
   bool isListening = true;
+  String connecting = "";
 
   static const bluetoothInitPlatform = MethodChannel('tholz.com.br/main');
   List<BleDevice> deviceList = [];
@@ -38,7 +39,7 @@ class _PaginaProvisionState extends State<PaginaProvision> {
   }
 
   Future<void> gpsPermission() async {
-    platformBle.invokeMethod('registerEventBus');
+    await platformBle.invokeMethod('registerEventBus');
     try {
       String result = await permissionPlatform.invokeMethod('gpsPermission');
       print(result);
@@ -99,10 +100,22 @@ class _PaginaProvisionState extends State<PaginaProvision> {
         });
       }
       if (message['connect'] != null) {
-        isListening = false;
-        isConnecting = false;
-        Navigator.of(context)
-            .pushNamed("/DECIDIR", arguments: {"name": productName});
+        if (message['connect'] == "true") {
+          isListening = false;
+          isConnecting = false;
+          Navigator.of(context)
+              .pushNamed("/DECIDIR", arguments: {"name": productName});
+        }
+        if (message['connect'] == "falhou") {
+          setState(() {
+            connecting = "falhou";
+          });
+        }
+        if (message['connect'] == "false") {
+          setState(() {
+            connecting = "Desconectado";
+          });
+        }
       } else {
         setState(() {
           deviceList
@@ -126,63 +139,71 @@ class _PaginaProvisionState extends State<PaginaProvision> {
       appBar: AppBar(
         title: const Text('BLE PROVISION'),
       ),
-      body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Column(
+          Text(connecting),
+          Center(
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                  onPressed: bleConnectPermission,
-                  child: const Text('PermissionConnect')),
-              ElevatedButton(
-                  onPressed: () async {
-                    isConnecting = false;
-                    bool isBleEnable = await bleEnable();
-                    if (isBleEnable) bluetoothInit();
-                  },
-                  child: const Text('Scan device')),
-              if (isListening)
-                StreamBuilder<Map<dynamic, dynamic>>(
-                    stream: messageStream,
-                    builder: (BuildContext context,
-                        AsyncSnapshot<Map<dynamic, dynamic>> snapshot) {
-                      if (snapshot.hasData) {
-                        return Text("Current Device: ${snapshot.data}");
-                      } else {
-                        return Text("Waiting for data...");
-                      }
-                    }),
-            ],
-          ),
-          Container(
-            color: Colors.lime,
-            child: Column(
-                children: List.generate(
-                    deviceList.length,
-                    (index) => Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Container(
-                            height: 50,
-                            width: double.infinity,
-                            color: isConnecting ? Colors.grey : Colors.blue,
-                            child: Center(
-                              child: TextButton(
-                                onPressed: () async => isConnecting
-                                    ? () {}
-                                    : bluetoothConnect(index),
-                                child: Text(
-                                  deviceList[index].name,
-                                  style: TextStyle(color: Colors.white),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: bleConnectPermission,
+                      child: const Text('PermissionConnect')),
+                  ElevatedButton(
+                      onPressed: () async {
+                        isConnecting = false;
+                        bool isBleEnable = await bleEnable();
+                        print('ENTREI AQUI');
+                        print(isBleEnable);
+                        if (isBleEnable) bluetoothInit();
+                      },
+                      child: const Text('Scan device')),
+                  if (isListening)
+                    StreamBuilder<Map<dynamic, dynamic>>(
+                        stream: messageStream,
+                        builder: (BuildContext context,
+                            AsyncSnapshot<Map<dynamic, dynamic>> snapshot) {
+                          if (snapshot.hasData) {
+                            return Text("Current Device: ${snapshot.data}");
+                          } else {
+                            return Text("Waiting for data...");
+                          }
+                        }),
+                ],
+              ),
+              Container(
+                color: Colors.lime,
+                child: Column(
+                    children: List.generate(
+                        deviceList.length,
+                        (index) => Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Container(
+                                height: 50,
+                                width: double.infinity,
+                                color: isConnecting ? Colors.grey : Colors.blue,
+                                child: Center(
+                                  child: TextButton(
+                                    onPressed: () async => isConnecting
+                                        ? () {}
+                                        : bluetoothConnect(index),
+                                    child: Text(
+                                      deviceList[index].name,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ))),
-          )
+                            ))),
+              )
+            ],
+          )),
         ],
-      )),
+      ),
     );
   }
 }

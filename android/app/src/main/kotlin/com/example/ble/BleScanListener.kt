@@ -36,14 +36,14 @@ open class BleScanListener(private var context: Context, var provisionManager: E
             ESPConstants.EVENT_DEVICE_CONNECTED -> {
                 val map = mapOf("connect" to "true", "info" to provisionManager.espDevice.versionInfo)
                 eventSink?.success(map)
-                eventSink?.endOfStream()
-                provisionManager.espDevice.scanNetworks(wifiScanListener)
             }
             ESPConstants.EVENT_DEVICE_CONNECTION_FAILED -> {
-                println("Falhou")
+                val map = mapOf("falhou" to "falhou")
+                eventSink?.success(map)
             }
             ESPConstants.EVENT_DEVICE_DISCONNECTED -> {
-                println("Desconectado")
+                val map = mapOf("connect" to "false")
+                eventSink?.success(map)
             }
 
         }
@@ -63,7 +63,7 @@ open class BleScanListener(private var context: Context, var provisionManager: E
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.ble/test3")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "tholz.com.br/bluetooth")
         channel.setMethodCallHandler(this)
 
         messageChannel = EventChannel(flutterPluginBinding.binaryMessenger, "tholz.com.br/scanDeviceStream")
@@ -75,8 +75,7 @@ open class BleScanListener(private var context: Context, var provisionManager: E
             "bluetoothConnect" ->{
                 val bleDevice: BleDevice = deviceList[call.argument<Int>("indice")!!]
                 val uuid = bluetoothDevices[bleDevice.bluetoothDevice]
-                println(bleDevice.bluetoothDevice)
-                provisionManager.getEspDevice().connectBLEDevice(bleDevice.bluetoothDevice, uuid);
+                provisionManager.espDevice.connectBLEDevice(bleDevice.bluetoothDevice, uuid);
                 provisionManager.espDevice.bluetoothDevice = bleDevice.bluetoothDevice
                 provisionManager.espDevice.proofOfPossession = "abcd1234"
             }
@@ -86,6 +85,9 @@ open class BleScanListener(private var context: Context, var provisionManager: E
             }
             "registerEventBus" -> {
                 EventBus.getDefault().register(this)
+            }
+            "scanWifi" ->{
+                provisionManager.espDevice.scanNetworks(wifiScanListener)
             }
             else -> {
                 result.notImplemented()
