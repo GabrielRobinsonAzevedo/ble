@@ -1,5 +1,7 @@
 package com.example.ble
 
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
@@ -33,15 +35,22 @@ EventChannel.StreamHandler, com.espressif.provisioning.listeners.ResponseListene
     }
 
     override fun onSuccess(returnData: ByteArray?) {
-        var teste = String(returnData!!, StandardCharsets.UTF_8)
+
+        var data = String(returnData!!, StandardCharsets.UTF_8)
         println("-----------------------------")
-        println(teste.removeRange(teste.length-1, teste.length ))
+        var message = data.removeRange(data.length-1, data.length )
+        println(message)
         println("-----------------------------")
         println("eventSink1 é $eventSink1")
-        var teste1 = teste.removeRange(teste.length-1, teste.length )
-        eventSink1?.success(teste1)
+        try {
+            var eventSinkTESTE = EventSinkOnMain(eventSink1!!)
+            eventSinkTESTE.success(message)
+        } catch (e: Exception){
+            println(e)
+        }
+
         println("-----------------------------")
-        println(teste.removeRange(teste.length-1, teste.length ))
+        println(message)
         println("-----------------------------")
     }
 
@@ -50,4 +59,31 @@ EventChannel.StreamHandler, com.espressif.provisioning.listeners.ResponseListene
         println("--------TESTEE-----------")
         println("-----------------------------")
     }
+}
+fun EventChannel.EventSink.onMain(): EventSinkOnMain {
+    return if (this is EventSinkOnMain) {
+        this
+    } else {
+        EventSinkOnMain(this)
+    }
+}
+
+class EventSinkOnMain internal constructor(private val result: EventChannel.EventSink) : EventChannel.EventSink {
+    private val handler: Handler by lazy {
+        Handler(Looper.getMainLooper())
+    }
+
+    override fun success(res: Any?) {
+        handler.post { result.success(res) }
+    }
+
+    override fun error(
+        errorCode: String, errorMessage: String?, errorDetails: Any?) {
+        handler.post { result.error(errorCode, errorMessage, errorDetails) }
+    }
+
+    override fun endOfStream() {
+        TODO("Not yet implemented")
+    }
+
 }

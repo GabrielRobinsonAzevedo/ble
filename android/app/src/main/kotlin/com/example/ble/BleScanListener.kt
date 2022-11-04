@@ -38,18 +38,6 @@ open class BleScanListener(private var context: Context, var provisionManager: E
                 eventSink?.success(map)
                 eventSink?.endOfStream()
                 provisionManager.espDevice.scanNetworks(wifiScanListener)
-                println("TESTE")
-                println(provisionManager.espDevice.bluetoothDevice)
-                provisionManager.espDevice.refreshServicesOfBleDevice()
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return
-                }
-                println(provisionManager.espDevice.bluetoothDevice.uuids)
-                println("TESTE")
             }
             ESPConstants.EVENT_DEVICE_CONNECTION_FAILED -> {
                 println("Falhou")
@@ -131,15 +119,11 @@ open class BleScanListener(private var context: Context, var provisionManager: E
         if (!deviceExists) {
             val bleDevice = BleDevice()
             bleDevice.name = scanResult.scanRecord!!.deviceName
-           println("${bleDevice.name} NAME")
             bleDevice.bluetoothDevice = device
             bluetoothDevices.put(device, serviceUuid)
-           println("${serviceUuid} serviceUuid")
             deviceList!!.add(bleDevice)
             var map = mapOf("name" to "${bleDevice.name}", "index" to (deviceList.size - 1))
-            println("eventSink BLE  é $eventSink")
             eventSink?.success(map)
-            println("depois do sink")
         }
     }
 
