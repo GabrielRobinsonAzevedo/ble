@@ -102,7 +102,7 @@ class _PaginaProvisionState extends State<PaginaProvision> {
         isListening = false;
         isConnecting = false;
         Navigator.of(context)
-            .pushNamed("/WIFI", arguments: {"name": productName});
+            .pushNamed("/DECIDIR", arguments: {"name": productName});
       } else {
         setState(() {
           deviceList

@@ -1,6 +1,8 @@
+import 'package:ble/pages/comunication.dart';
 import 'package:ble/pages/pg.dart';
 import 'package:ble/pages/verification.dart';
 import 'package:ble/pages/wifi.dart';
+import 'package:ble/pages/wifi_or_comunication.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -20,7 +22,9 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (context) => const PaginaProvision(),
+        '/DECIDIR': (context) => const WifiOrComunicationPage(),
         '/WIFI': (context) => const WifiPage(),
+        '/COMUNICATION': (context) => const ComunicationPage(),
         '/VERIFY': (context) => const VerificationPage(),
       },
     );

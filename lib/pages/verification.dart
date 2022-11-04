@@ -82,7 +82,7 @@ class _VerificationPageState extends State<VerificationPage> {
   @override
   void initState() {
     super.initState();
-    // handlerProvision();
+    handlerProvision();
   }
 
   @override
